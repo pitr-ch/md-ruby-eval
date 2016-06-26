@@ -9,10 +9,11 @@ Gem::Specification.new do |s|
   s.authors          = ['Petr Chalupa']
   s.email            = 'git+md-ruby-eval@pitr.ch'
   s.homepage         = 'https://github.com/pitr-ch/md-ruby-eval'
+  s.files            = Dir['lib/**/*.rb'] & git_files
   s.extra_rdoc_files = %w(LICENSE.txt README.md VERSION) & git_files
-  s.bindir           = 'bin'
   s.license          = 'Apache-2.0'
 
+  s.bindir = 'bin'
   s.executables << 'md-ruby-eval'
 end
 
