@@ -5,6 +5,7 @@ require 'md_ruby_eval'
 # this will only run if the script was the main, not load'd or require'd
 to_require  = []
 indentation = 40
+line_length = 79
 auto        = false
 
 OptionParser.new do |opts|
@@ -20,6 +21,10 @@ OptionParser.new do |opts|
 
   opts.on('-i', '--indent NUMBER', Integer, 'Default indentation of results') do |v|
     indentation = v
+  end
+
+  opts.on('-l', '--line NUMBER', Integer, 'Default maximum line length') do |v|
+    line_length = v
   end
 
   opts.on('--[no-]auto',
@@ -39,7 +44,7 @@ if auto
         puts "using: #{init_path}"
         load init_path
       end
-      MDRubyEval.new input_path, input_path.gsub(/(\.in)?\.md$/, '.out.md'), binding, indentation
+      MDRubyEval.new input_path, input_path.gsub(/(\.in)?\.md$/, '.out.md'), binding, indentation, line_length
     end
 
     Process.wait pid
@@ -47,6 +52,6 @@ if auto
 else
   input_path, output_path = ARGV.map { |p| File.expand_path p }
   raise 'no input path' unless input_path && File.exist?(input_path)
-  MDRubyEval.new input_path, output_path, binding, indentation
+  MDRubyEval.new input_path, output_path, binding, indentation, line_length
 end
 

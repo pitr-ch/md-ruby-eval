@@ -4,12 +4,13 @@ require 'optparse'
 
 class MDRubyEval
 
-  def initialize(input_path, output_path, environment, indentation)
+  def initialize(input_path, output_path, environment, indentation, line_length)
     @input_path  = input_path
     @output_path = output_path
     @environment = environment
     @output      = ''
     @indentation = indentation
+    @line_length = line_length
 
     process_file input_path
   end
@@ -51,7 +52,8 @@ class MDRubyEval
           if last_line.size < @indentation && result.inspect.size < @indentation
             output << "%-#{@indentation}s %s" % [last_line.chomp, "# => #{result.inspect}\n"]
           else
-            inspect_lines = result.pretty_inspect.lines
+            PP.pp result, (buf = ''), @line_length
+            inspect_lines = buf.lines
             output << last_line << "# => #{inspect_lines[0]}" << inspect_lines[1..-1].map { |l| format '#    %s', l }.join
           end
         end
