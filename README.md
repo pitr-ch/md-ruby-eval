@@ -45,7 +45,7 @@ becomes
     a                 # => 3
     ```
 
-A parseable piece of code ended with '#' will be evaluated but it's result is not
+A parseable piece of code ended with '#' will be evaluated but its result is not
 added to the output as a comment, which is useful for method and class definitions.
 
 ## Example usage of `--auto`
