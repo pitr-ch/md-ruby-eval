@@ -16,6 +16,6 @@ Gem::Specification.new do |s|
   s.bindir = 'bin'
   s.executables << 'md-ruby-eval'
 
-  s.add_dependency 'pry', '~> 0.10.4'
+  s.add_dependency 'pry', '~> 0.11'
 end
 

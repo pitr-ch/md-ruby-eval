@@ -1,2 +1,4 @@
-*.gem
-.idea
+/*.gem
+/.idea
+/*.iml
+/Gemfile.lock

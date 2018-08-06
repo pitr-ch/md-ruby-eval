@@ -12,6 +12,9 @@ class MDRubyEval
     @indentation = indentation
     @line_length = line_length
 
+    @last_id   = 1
+    @known_ids = Hash.new { |h, k| h[k] = format('%016x', @last_id += 1) }
+
     process_file input_path
   end
 
@@ -40,7 +43,7 @@ class MDRubyEval
     chunk_lines.each do |chunk, lines|
       result = evaluate(chunk, line_count)
       if chunk.strip.empty? || chunk.include?('#')
-        output << (chunk.end_with?("#\n") ? chunk[0..-3]+"\n" : chunk)
+        output << (chunk.end_with?("#\n") ? chunk[0..-3] + "\n" : chunk)
       else
         pre_lines = chunk.lines.to_a
         last_line = pre_lines.pop
@@ -49,10 +52,12 @@ class MDRubyEval
         if last_line =~ /\#$/
           output << last_line.gsub(/\#$/, '')
         else
-          if last_line.size < @indentation && result.inspect.size < @indentation
-            output << "%-#{@indentation}s %s" % [last_line.chomp, "# => #{result.inspect}\n"]
+          inspected_result = stabilize_object_ids result.inspect
+          if last_line.size < @indentation && inspected_result.size < @indentation
+            output << "%-#{@indentation}s %s" % [last_line.chomp, "# => #{inspected_result}\n"]
           else
             PP.pp result, (buf = ''), @line_length
+            buf           = stabilize_object_ids buf
             inspect_lines = buf.lines
             output << last_line << "# => #{inspect_lines[0]}" << inspect_lines[1..-1].map { |l| format '#    %s', l }.join
           end
@@ -63,11 +68,16 @@ class MDRubyEval
     output
   end
 
+
+  def stabilize_object_ids(output)
+    output.gsub(/(#<[\w:_]+0x)([0-9a-f]{16})/) { $1 + @known_ids[$2] }
+  end
+
   def process_file(input_path)
     puts "evaluating: #{input_path}"
 
-    input      = File.read(input_path)
-    parts      = input.split(/^(```\w*\n)/)
+    input = File.read(input_path)
+    parts = input.split(/^(```\w*\n)/)
 
     # pp parts.map(&:lines)
 
