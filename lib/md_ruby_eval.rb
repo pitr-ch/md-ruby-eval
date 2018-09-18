@@ -13,7 +13,7 @@ class MDRubyEval
     @line_length = line_length
 
     @last_id   = 1
-    @known_ids = Hash.new { |h, k| h[k] = format('%016x', @last_id += 1) }
+    @known_ids = Hash.new { |h, k| h[k] = format('%06x', @last_id += 1) }
 
     process_file input_path
   end
