@@ -7,9 +7,14 @@ to_require  = []
 indentation = 40
 line_length = 79
 auto        = false
+dir         = Dir.pwd
 
 OptionParser.new do |opts|
   opts.banner = File.read(__dir__ + '/../README.md') + "\n## Options:\n\n"
+
+  opts.on('-d', '--directory DIR', 'Working directory') do |v|
+    dir = File.expand_path v
+  end
 
   opts.on('-r', '--require FILE', 'Require given files before processing the MD files') do |v|
     to_require << v
@@ -33,25 +38,27 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-if auto
-  input_paths = Dir.glob('*.in.md')
-  input_paths.each do |input_path|
+Dir.chdir dir do
+  if auto
+    input_paths = Dir.glob('*.in.md')
+    input_paths.each do |input_path|
 
-    pid = fork do
-      to_require.each { |p| require p }
-      init_path = File.basename(input_path, '.in.md') + '.init.rb'
-      if File.exist? init_path
-        puts "using: #{init_path}"
-        load init_path
+      pid = fork do
+        to_require.each { |p| require p }
+        init_path = File.basename(input_path, '.in.md') + '.init.rb'
+        if File.exist? init_path
+          puts "using: #{init_path}"
+          load init_path
+        end
+        MDRubyEval.new input_path, input_path.gsub(/(\.in)?\.md$/, '.out.md'), binding, indentation, line_length
       end
-      MDRubyEval.new input_path, input_path.gsub(/(\.in)?\.md$/, '.out.md'), binding, indentation, line_length
-    end
 
-    Process.wait pid
+      Process.wait pid
+    end
+  else
+    input_path, output_path = ARGV.map { |p| File.expand_path p }
+    raise 'no input path' unless input_path && File.exist?(input_path)
+    MDRubyEval.new input_path, output_path, binding, indentation, line_length
   end
-else
-  input_path, output_path = ARGV.map { |p| File.expand_path p }
-  raise 'no input path' unless input_path && File.exist?(input_path)
-  MDRubyEval.new input_path, output_path, binding, indentation, line_length
 end
 
