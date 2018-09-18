@@ -64,11 +64,3 @@ added to the output as a comment, which is useful for method and class definitio
     Creates files `a.out.md` and `b.out.md` evaluating each in isolated environments, before
     `a.out.md` is evaluated `a.init.md` is required to setup its environment. `c.md` is ignored
     since it does not have `in` marker.
-
-## Options:
-
-    -r, --require FILE               Require given files before processing the MD files
-    -I, --load-path PATH             Adds the path to LOAD_PATH
-    -i, --indent NUMBER              Default indentation of results
-    -l, --line NUMBER                Default maximum line length
-        --[no-]auto                  Automatic mode. Finds `*.in.md` files outputting `*.out.md` files
