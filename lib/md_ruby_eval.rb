@@ -4,22 +4,31 @@ require 'optparse'
 
 class MDRubyEval
 
-  def initialize(input_path, output_path, environment, indentation, line_length)
+  def initialize(input_path, output_path, environment, indentation, line_length, verbose)
     @input_path  = input_path
     @output_path = output_path
     @environment = environment
     @output      = ''
     @indentation = indentation
     @line_length = line_length
+    @verbose     = verbose
 
     @last_id   = 1
     @known_ids = Hash.new { |h, k| h[k] = format('%06x', @last_id += 1) }
+    @too_long  = []
 
     process_file input_path
   end
 
   def evaluate(code, line)
+    puts code if @verbose
+    start = Time.now
     eval(code, @environment, @input_path, line)
+  ensure
+    took   = Time.now - start
+    output = format "\e[1m== %5.2f seconds   %s:%d\e[22m", took, @input_path, line
+    puts output if @verbose
+    @too_long << [took, code + output] if took > 0.1
   end
 
   def process_ruby(part, start_line)
@@ -42,7 +51,7 @@ class MDRubyEval
     output      = ''
     chunk_lines.each do |chunk, lines|
       result = evaluate(chunk, line_count)
-      if chunk.strip.empty? || chunk.include?('#')
+      if chunk.strip.empty? || chunk.lines.last.include?('#')
         output << (chunk.end_with?("#\n") ? chunk[0..-3] + "\n" : chunk)
       else
         pre_lines = chunk.lines.to_a
@@ -107,6 +116,12 @@ class MDRubyEval
 
       @output << part
       line_count += part.lines.size
+    end
+
+    to_print = @too_long.sort_by { |took, _| -took }[0..10]
+    if to_print.size > 0
+      puts "#{to_print.size} longest evaluations:"
+      to_print.each { |_, out| puts out }
     end
 
     puts "writing: #{@output_path}"
