@@ -46,17 +46,22 @@ end.parse!
 
 Dir.chdir dir do
   if auto
-    input_paths = Dir.glob('*.in.md')
+    input_paths = Dir.glob('*.in.{md,rb}')
     input_paths.each do |input_path|
 
       pid = fork do
         to_require.each { |p| require p }
-        init_path = File.basename(input_path, '.in.md') + '.init.rb'
+        init_path = File.basename(input_path).gsub(/\.in\.(md|rb)/, '.init.rb')
         if File.exist? init_path
           puts "using: #{init_path}"
           load init_path
         end
-        MDRubyEval.new input_path, input_path.gsub(/(\.in)?\.md$/, '.out.md'), binding, indentation, line_length, verbose
+        MDRubyEval.new input_path,
+                       input_path.gsub(/(\.in)?\.(md|rb)$/) { ".out.#{$2}" },
+                       binding,
+                       indentation,
+                       line_length,
+                       verbose
       end
 
       Process.wait pid

@@ -86,48 +86,50 @@ class MDRubyEval
     puts "evaluating: #{input_path}"
 
     input = File.read(input_path)
-    parts = input.split(/^(```\w*\n)/)
 
-    # pp parts.map(&:lines)
+    if File.extname(input_path) == '.rb'
+      @output << process_ruby(input, 1)
+    else
+      parts = input.split(/^(```\w*\n)/)
 
-    code_block = nil
-    line_count = 1
+      code_block = nil
+      line_count = 1
 
-    parts.each do |part|
-      if part =~ /^```(\w+)$/
-        code_block = $1
+      parts.each do |part|
+        if part =~ /^```(\w+)$/
+          code_block = $1
+          @output << part
+          line_count += 1
+          next
+        end
+
+        if part =~ /^```$/
+          code_block = nil
+          @output << part
+          line_count += 1
+          next
+        end
+
+        if code_block == 'ruby'
+          @output << process_ruby(part, line_count)
+          line_count += part.lines.size
+          next
+        end
+
         @output << part
-        line_count += 1
-        next
-      end
-
-      if part =~ /^```$/
-        code_block = nil
-        @output << part
-        line_count += 1
-        next
-      end
-
-      if code_block == 'ruby'
-        @output << process_ruby(part, line_count)
         line_count += part.lines.size
-        next
       end
 
-      @output << part
-      line_count += part.lines.size
-    end
-
-    to_print = @too_long.sort_by { |took, _| -took }[0..10]
-    if to_print.size > 0
-      puts "#{to_print.size} longest evaluations:"
-      to_print.each { |_, out| puts out }
+      to_print = @too_long.sort_by { |took, _| -took }[0..10]
+      if to_print.size > 0
+        puts "#{to_print.size} longest evaluations:"
+        to_print.each { |_, out| puts out }
+      end
     end
 
     puts "writing: #{@output_path}"
     File.write(@output_path, @output)
   rescue => ex
     puts "#{ex} (#{ex.class})\n#{ex.backtrace * "\n"}"
-
   end
 end

@@ -56,11 +56,11 @@ added to the output as a comment, which is useful for method and class definitio
 
         a.in.md
         a.init.rb
-        b.in.md
+        b.in.rb
         c.md
 
 -   `md-ruby-eval --auto` call the tool
 
-    Creates files `a.out.md` and `b.out.md` evaluating each in isolated environments, before
+    Creates files `a.out.md` and `b.out.rb` evaluating each in isolated environments, before
     `a.out.md` is evaluated `a.init.md` is required to setup its environment. `c.md` is ignored
     since it does not have `in` marker.
