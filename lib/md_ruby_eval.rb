@@ -5,7 +5,7 @@ require 'optparse'
 class MDRubyEval
 
   def initialize(input_path, output_path, environment, indentation, line_length, verbose)
-    @input_path  = input_path
+    @input_path  = File.expand_path input_path
     @output_path = output_path
     @environment = environment
     @output      = ''
@@ -61,12 +61,12 @@ class MDRubyEval
         if last_line =~ /\#$/
           output << last_line.gsub(/\#$/, '')
         else
-          inspected_result = stabilize_object_ids result.inspect
+          inspected_result = normalize result.inspect
           if last_line.size < @indentation && inspected_result.size < @indentation
             output << "%-#{@indentation}s %s" % [last_line.chomp, "# => #{inspected_result}\n"]
           else
             PP.pp result, (buf = ''), @line_length
-            buf           = stabilize_object_ids buf
+            buf           = normalize buf
             inspect_lines = buf.lines
             output << last_line << "# => #{inspect_lines[0]}" << inspect_lines[1..-1].map { |l| format '#    %s', l }.join
           end
@@ -78,8 +78,11 @@ class MDRubyEval
   end
 
 
-  def stabilize_object_ids(output)
-    output.gsub(/(#<[\w:_]+0x)([0-9a-f]{16})/) { $1 + @known_ids[$2] }
+  def normalize(output)
+    basename = File.basename(@input_path)
+    output.
+        gsub(/(#<[\w:_]+0x)([0-9a-f]{16})/) { $1 + @known_ids[$2] }.
+        gsub(/#{@input_path}/, basename)
   end
 
   def process_file(input_path)
